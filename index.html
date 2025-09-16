@@ -7634,13 +7634,36 @@
         // Ensure export buttons are wired on initial load as well
         wireCsvButtons();
         
-        // Wait for Chart.js to load, then render charts
-        setTimeout(() => {
+        // Wait for Chart.js to load, then render charts and dashboard
+        setTimeout(async () => {
             if (typeof Chart !== 'undefined') {
-                renderAllCharts();
+                // Load data first, then render dashboard and charts
+                try {
+                    appState.trades = await dataStore.getTrades();
+                    appState.ledger = await dataStore.getLedger();
+                    console.log('Initial data loaded:', { trades: appState.trades.length, ledger: appState.ledger.length });
+                    
+                    // Render dashboard with loaded data
+                    await renderDashboard();
+                } catch (error) {
+                    console.error('Error loading initial data:', error);
+                    // Fallback to just rendering charts
+                    renderAllCharts();
+                }
             } else {
                 console.warn('Chart.js not loaded, retrying...');
-                setTimeout(() => renderAllCharts(), 1000);
+                setTimeout(async () => {
+                    if (typeof Chart !== 'undefined') {
+                        try {
+                            appState.trades = await dataStore.getTrades();
+                            appState.ledger = await dataStore.getLedger();
+                            await renderDashboard();
+                        } catch (error) {
+                            console.error('Error loading initial data on retry:', error);
+                            renderAllCharts();
+                        }
+                    }
+                }, 1000);
             }
         }, 500);
 
