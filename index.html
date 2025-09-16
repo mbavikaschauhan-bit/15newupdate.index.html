@@ -2744,27 +2744,42 @@
             console.log('All closed trades:', closedTradesToday);
             
             closedTradesToday.forEach(trade => {
-                // Handle different date formats
-                let tradeDateStr;
-                if (trade.exit_date.includes('T')) {
-                    // ISO format: 2024-01-15T10:30:00
-                    tradeDateStr = new Date(trade.exit_date).toISOString().split('T')[0];
-                } else {
-                    // Date only format: 2024-01-15
-                    tradeDateStr = trade.exit_date.split('T')[0];
-                }
-                
-                const pnl = calculateNetPnl(trade);
-                console.log(`Trade: ${trade.asset}, Exit Date: ${trade.exit_date}, Date String: ${tradeDateStr}, P&L: ${pnl}`);
-                console.log(`Today: ${todayStr}, Yesterday: ${yesterdayStr}`);
-                console.log(`Date comparison - Today match: ${tradeDateStr === todayStr}, Yesterday match: ${tradeDateStr === yesterdayStr}`);
-                
-                if (tradeDateStr === todayStr) {
-                    todaysPnl += pnl;
-                    console.log(`Added to today's P&L: ${pnl}, Total today: ${todaysPnl}`);
-                } else if (tradeDateStr === yesterdayStr) {
-                    yesterdaysPnl += pnl;
-                    console.log(`Added to yesterday's P&L: ${pnl}, Total yesterday: ${yesterdaysPnl}`);
+                try {
+                    // Handle different date formats
+                    let tradeDateStr;
+                    if (!trade.exit_date || typeof trade.exit_date !== 'string') {
+                        console.warn('Missing or invalid exit_date in trade saved modal:', trade.exit_date, 'for trade:', trade);
+                        return;
+                    }
+                    
+                    if (trade.exit_date.includes('T')) {
+                        // ISO format: 2024-01-15T10:30:00
+                        const exitDate = new Date(trade.exit_date);
+                        if (!isNaN(exitDate.getTime())) {
+                            tradeDateStr = exitDate.toISOString().split('T')[0];
+                        } else {
+                            console.warn('Invalid exit_date in trade saved modal:', trade.exit_date, 'for trade:', trade);
+                            return; // Skip this trade
+                        }
+                    } else {
+                        // Date only format: 2024-01-15
+                        tradeDateStr = trade.exit_date.split('T')[0];
+                    }
+                    
+                    const pnl = calculateNetPnl(trade);
+                    console.log(`Trade: ${trade.asset}, Exit Date: ${trade.exit_date}, Date String: ${tradeDateStr}, P&L: ${pnl}`);
+                    console.log(`Today: ${todayStr}, Yesterday: ${yesterdayStr}`);
+                    console.log(`Date comparison - Today match: ${tradeDateStr === todayStr}, Yesterday match: ${tradeDateStr === yesterdayStr}`);
+                    
+                    if (tradeDateStr === todayStr) {
+                        todaysPnl += pnl;
+                        console.log(`Added to today's P&L: ${pnl}, Total today: ${todaysPnl}`);
+                    } else if (tradeDateStr === yesterdayStr) {
+                        yesterdaysPnl += pnl;
+                        console.log(`Added to yesterday's P&L: ${pnl}, Total yesterday: ${yesterdaysPnl}`);
+                    }
+                } catch (error) {
+                    console.error('Error processing closed trade in showTradeSavedModal:', error, 'for trade:', trade);
                 }
             });
             
@@ -2774,18 +2789,41 @@
             let totalOpenValue = 0;
             
             tradesEnteredToday.forEach(trade => {
-                const entryDateStr = new Date(trade.entry_date).toISOString().split('T')[0];
-                if (entryDateStr === todayStr && !trade.exit_date) {
-                    openTradesToday++;
-                    totalOpenValue += (trade.entry_price || 0) * (trade.quantity || 0);
-                    console.log('Open trade entered today:', trade.asset, 'Value:', (trade.entry_price || 0) * (trade.quantity || 0));
+                try {
+                    if (!trade.entry_date || typeof trade.entry_date !== 'string') {
+                        console.warn('Missing or invalid entry_date in trade saved modal:', trade.entry_date, 'for trade:', trade);
+                        return;
+                    }
+                    
+                    const entryDate = new Date(trade.entry_date);
+                    if (!isNaN(entryDate.getTime())) {
+                        const entryDateStr = entryDate.toISOString().split('T')[0];
+                        if (entryDateStr === todayStr && !trade.exit_date) {
+                            openTradesToday++;
+                            totalOpenValue += (trade.entry_price || 0) * (trade.quantity || 0);
+                            console.log('Open trade entered today:', trade.asset, 'Value:', (trade.entry_price || 0) * (trade.quantity || 0));
+                        }
+                    } else {
+                        console.warn('Invalid entry_date in trade saved modal:', trade.entry_date, 'for trade:', trade);
+                    }
+                } catch (error) {
+                    console.error('Error processing trade in showTradeSavedModal:', error, 'for trade:', trade);
                 }
             });
             console.log('Trade Saved Modal P&L Calculation:');
             console.log('Today:', todayStr, 'P&L:', todaysPnl);
             console.log('Yesterday:', yesterdayStr, 'P&L:', yesterdaysPnl);
             console.log('Total trades:', appState.trades.length);
-            console.log('Closed trades today:', closedTradesToday.filter(t => new Date(t.exit_date).toISOString().split('T')[0] === todayStr).length);
+            console.log('Closed trades today:', closedTradesToday.filter(t => {
+                try {
+                    if (!t.exit_date || typeof t.exit_date !== 'string') return false;
+                    const exitDate = new Date(t.exit_date);
+                    return !isNaN(exitDate.getTime()) && exitDate.toISOString().split('T')[0] === todayStr;
+                } catch (error) {
+                    console.error('Error filtering closed trades today:', error, 'for trade:', t);
+                    return false;
+                }
+            }).length);
             console.log('Open trades entered today:', openTradesToday, 'Total value:', totalOpenValue);
             
             const pnlDifference = todaysPnl - yesterdaysPnl;
@@ -3028,6 +3066,7 @@
             renderStatement();
             renderChallenge();
             renderAchievements();
+            renderAllCharts();
             
             // Force challenge page update if it's currently visible
             const challengePage = document.getElementById('challenge');
@@ -3382,8 +3421,12 @@
                         // Split entry datetime into date and time
                         if (trade.entry_date) {
                             const entryDateTime = new Date(trade.entry_date);
-                            document.getElementById('entry-date').value = entryDateTime.toISOString().split('T')[0];
-                            document.getElementById('entry-time').value = entryDateTime.toTimeString().slice(0, 5);
+                            if (!isNaN(entryDateTime.getTime())) {
+                                document.getElementById('entry-date').value = entryDateTime.toISOString().split('T')[0];
+                                document.getElementById('entry-time').value = entryDateTime.toTimeString().slice(0, 5);
+                            } else {
+                                console.warn('Invalid entry_date in form editing:', trade.entry_date, 'for trade:', trade);
+                            }
                         } else {
                             document.getElementById('entry-date').value = '';
                             document.getElementById('entry-time').value = '';
@@ -3395,8 +3438,12 @@
                         // Split exit datetime into date and time
                         if (trade.exit_date) {
                             const exitDateTime = new Date(trade.exit_date);
-                            document.getElementById('exit-date').value = exitDateTime.toISOString().split('T')[0];
-                            document.getElementById('exit-time').value = exitDateTime.toTimeString().slice(0, 5);
+                            if (!isNaN(exitDateTime.getTime())) {
+                                document.getElementById('exit-date').value = exitDateTime.toISOString().split('T')[0];
+                                document.getElementById('exit-time').value = exitDateTime.toTimeString().slice(0, 5);
+                            } else {
+                                console.warn('Invalid exit_date in form editing:', trade.exit_date, 'for trade:', trade);
+                            }
                         } else {
                             document.getElementById('exit-date').value = '';
                             document.getElementById('exit-time').value = '';
@@ -3649,7 +3696,7 @@
 
                 monthYearEl.textContent = firstDay.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-                const trades = JSON.parse(localStorage.getItem('trades') || '[]') || [];
+                const trades = Array.isArray(appState.trades) ? appState.trades : [];
                 const pnlByDate = {};
                 const tradesCountByDate = {};
                 const fmtCompact = (num) => {
@@ -3666,7 +3713,14 @@
                     // Include both fully closed trades and partial exits in calendar
                     if (!isClosed && !isPartialExit) return;
                     
-                    const d = (new Date(t.exit_date)).toISOString().slice(0,10);
+                    // Validate exit_date before converting
+                    const exitDate = new Date(t.exit_date);
+                    if (isNaN(exitDate.getTime())) {
+                        console.warn('Invalid exit_date in calendar PnL:', t.exit_date, 'for trade:', t);
+                        return; // Skip this trade
+                    }
+                    
+                    const d = exitDate.toISOString().slice(0,10);
                     // Use the same calculateNetPnl function used throughout the app for consistency
                     const pnl = calculateNetPnl(t);
                     pnlByDate[d] = (pnlByDate[d] || 0) + pnl;
@@ -3923,7 +3977,7 @@
                 if (!modal) return;
 
                 // Get trades for the specific date
-                const trades = JSON.parse(localStorage.getItem('trades') || '[]') || [];
+                const trades = Array.isArray(appState.trades) ? appState.trades : [];
                 const dayTrades = trades.filter(t => {
                     // Use the same logic as trade history to determine if trade is closed
                     const isClosed = t.exit_date && t.exit_price && (!t.exit_quantity || t.exit_quantity >= t.quantity);
@@ -3931,7 +3985,14 @@
                     
                     if (!isClosed && !isPartialExit) return false;
                     
-                    const tradeDate = new Date(t.exit_date).toISOString().slice(0, 10);
+                    // Validate exit_date before converting
+                    const exitDate = new Date(t.exit_date);
+                    if (isNaN(exitDate.getTime())) {
+                        console.warn('Invalid exit_date in calendar filter:', t.exit_date, 'for trade:', t);
+                        return false; // Skip this trade
+                    }
+                    
+                    const tradeDate = exitDate.toISOString().slice(0, 10);
                     return tradeDate === dateISO;
                 });
 
@@ -4034,7 +4095,7 @@
                 // Render original Performance Metrics
                 const container = document.getElementById('reports-metrics-grid');
                 if (!container) return;
-                const trades = JSON.parse(localStorage.getItem('trades') || '[]') || [];
+                const trades = Array.isArray(appState.trades) ? appState.trades : [];
                 const closed = trades.filter(t => t.exit_price && t.exit_date);
                 const wins = closed.filter(t => ((t.exit_price - t.entry_price) * (t.quantity || 0)) > 0);
                 const losses = closed.filter(t => ((t.exit_price - t.entry_price) * (t.quantity || 0)) < 0);
@@ -4045,7 +4106,14 @@
                 // Day aggregates
                 const byDay = {};
                 closed.forEach(t => {
-                    const d = (new Date(t.exit_date)).toISOString().slice(0,10);
+                    // Validate exit_date before converting
+                    const exitDate = new Date(t.exit_date);
+                    if (isNaN(exitDate.getTime())) {
+                        console.warn('Invalid exit_date in calendar:', t.exit_date, 'for trade:', t);
+                        return; // Skip this trade
+                    }
+                    
+                    const d = exitDate.toISOString().slice(0,10);
                     const pnl = (t.exit_price - t.entry_price) * (t.quantity || 0) - ((t.brokerage||0)+(t.other_fees||0));
                     byDay[d] = (byDay[d] || 0) + pnl;
                 });
@@ -4426,8 +4494,8 @@
                 const statementBody = document.getElementById('statement-tbody');
                 if (!statementBody) return;
                 // Load latest
-                const trades = JSON.parse(localStorage.getItem('trades') || '[]') || [];
-                const ledger = JSON.parse(localStorage.getItem('ledger') || '[]') || [];
+                const trades = Array.isArray(appState.trades) ? appState.trades : [];
+                const ledger = Array.isArray(appState.ledger) ? appState.ledger : [];
 
                 const tradeRows = trades.map(t => {
                     const closed = t.exit_date && t.exit_price;
@@ -4922,7 +4990,15 @@
                 const byDay = {};
                 trades.forEach(t => {
                     if (!(t.exit_date && t.exit_price)) return;
-                    const d = (new Date(t.exit_date)).toISOString().slice(0,10);
+                    
+                    // Validate the exit_date before converting
+                    const exitDate = new Date(t.exit_date);
+                    if (isNaN(exitDate.getTime())) {
+                        console.warn('Invalid exit_date found:', t.exit_date, 'for trade:', t);
+                        return; // Skip this trade
+                    }
+                    
+                    const d = exitDate.toISOString().slice(0,10);
                     const pnl = calculateNetPnl(t);
                     byDay[d] = (byDay[d] || 0) + pnl;
                 });
@@ -6216,8 +6292,24 @@
                     // Function to calculate daily win rate statistics
                     function calculateDailyWinRateStats(trades, date) {
                         const dayTrades = trades.filter(trade => {
-                            const tradeDate = trade.exit_date ? new Date(trade.exit_date).toISOString().split('T')[0] : 
-                                             new Date(trade.entry_date).toISOString().split('T')[0];
+                            let tradeDate;
+                            if (trade.exit_date) {
+                                const exitDate = new Date(trade.exit_date);
+                                if (isNaN(exitDate.getTime())) {
+                                    console.warn('Invalid exit_date in reports:', trade.exit_date, 'for trade:', trade);
+                                    return false;
+                                }
+                                tradeDate = exitDate.toISOString().split('T')[0];
+                            } else if (trade.entry_date) {
+                                const entryDate = new Date(trade.entry_date);
+                                if (isNaN(entryDate.getTime())) {
+                                    console.warn('Invalid entry_date in reports:', trade.entry_date, 'for trade:', trade);
+                                    return false;
+                                }
+                                tradeDate = entryDate.toISOString().split('T')[0];
+                            } else {
+                                return false;
+                            }
                             return tradeDate === date;
                         });
                         
@@ -6270,13 +6362,21 @@
                     closedTrades.forEach(trade => {
                         if (trade.entry_date) {
                             const date = new Date(trade.entry_date);
-                            const formattedDate = date.toISOString().split('T')[0];
-                            allDates.add(formattedDate);
+                            if (!isNaN(date.getTime())) {
+                                const formattedDate = date.toISOString().split('T')[0];
+                                allDates.add(formattedDate);
+                            } else {
+                                console.warn('Invalid entry_date in reports date collection:', trade.entry_date, 'for trade:', trade);
+                            }
                         }
                         if (trade.exit_date) {
                             const date = new Date(trade.exit_date);
-                            const formattedDate = date.toISOString().split('T')[0];
-                            allDates.add(formattedDate);
+                            if (!isNaN(date.getTime())) {
+                                const formattedDate = date.toISOString().split('T')[0];
+                                allDates.add(formattedDate);
+                            } else {
+                                console.warn('Invalid exit_date in reports date collection:', trade.exit_date, 'for trade:', trade);
+                            }
                         }
                     });
                     
@@ -7442,24 +7542,56 @@
             }
             
             const form = new FormData(tradeForm);
+            console.log('Form data collected:', Object.fromEntries(form.entries()));
+            console.log('Entry Date:', form.get('entryDate'));
+            console.log('Entry Time:', form.get('entryTime'));
+            console.log('Exit Date:', form.get('exitDate'));
+            console.log('Exit Time:', form.get('exitTime'));
+            
             // Collect mistakes made (checkboxes)
             const mistakes = [];
             document.querySelectorAll('input[name="mistakes"]:checked').forEach(checkbox => {
                 mistakes.push(checkbox.value);
             });
             
+            // Helper function to create valid timestamp
+            const createTimestamp = (date, time) => {
+                console.log('createTimestamp called with:', { date, time });
+                if (!date || !time || date.trim() === '' || time.trim() === '') {
+                    console.log('Missing date or time, returning null');
+                    return null;
+                }
+                try {
+                    const timestamp = `${date}T${time}:00`;
+                    console.log('Created timestamp:', timestamp);
+                    // Validate the timestamp
+                    const dateObj = new Date(timestamp);
+                    const isValid = !isNaN(dateObj.getTime());
+                    console.log('Timestamp validation:', { timestamp, isValid, dateObj });
+                    if (!isValid) {
+                        console.error('Invalid timestamp created:', timestamp);
+                        return null;
+                    }
+                    return timestamp;
+                } catch (error) {
+                    console.error('Error creating timestamp:', error);
+                    return null;
+                }
+            };
+
             const trade = {
                 id: document.getElementById('trade-id').value || `${Date.now()}`,
+                user_id: appState.user?.id || 'anonymous',
                 asset: form.get('asset') || '',
                 direction: document.querySelector('#direction-group .active')?.dataset?.value || form.get('direction') || 'Long',
                 segment: document.querySelector('#segment-group .active')?.dataset?.value || form.get('segment') || 'Equity',
                 trading_style: document.querySelector('#trading-style-group .active')?.dataset?.value || form.get('tradingStyle') || 'Intraday',
-                entry_date: (form.get('entryDate') && form.get('entryTime')) ? `${form.get('entryDate')}T${form.get('entryTime')}` : '',
+                entry_date: createTimestamp(form.get('entryDate'), form.get('entryTime')),
                 entry_price: parseFloat(form.get('entryPrice')) || 0,
                 quantity: parseFloat(form.get('quantity')) || 0,
                 stop_loss: form.get('stopLoss') ? parseFloat(form.get('stopLoss')) : null,
                 target: form.get('target') ? parseFloat(form.get('target')) : null,
-                exit_date: (form.get('exitDate') && form.get('exitTime')) ? `${form.get('exitDate')}T${form.get('exitTime')}` : '',
+                exit_date: createTimestamp(form.get('exitDate'), form.get('exitTime')),
                 exit_price: form.get('exitPrice') ? parseFloat(form.get('exitPrice')) : null,
                 exit_quantity: form.get('exitQuantity') ? parseFloat(form.get('exitQuantity')) : null,
                 brokerage: form.get('brokerage') ? parseFloat(form.get('brokerage')) : 0,
@@ -7471,8 +7603,14 @@
                 mistakes: mistakes
             };
             try {
+                console.log('Attempting to save trade:', trade);
+                console.log('Trade entry_date:', trade.entry_date, 'type:', typeof trade.entry_date);
+                console.log('Trade exit_date:', trade.exit_date, 'type:', typeof trade.exit_date);
+                console.log('Supabase client available:', !!sbClient);
                 await dataStore.upsertTrade(trade);
+                console.log('Trade saved successfully');
                 appState.trades = await dataStore.getTrades();
+                console.log('Trades refreshed, count:', appState.trades.length);
                 clearTradeForm();
                 renderDashboard();
                 renderTradeHistory();
@@ -7480,7 +7618,13 @@
                 showTradeSavedModal();
             } catch (err) {
                 console.error('Failed to save trade', err);
-                showToast('Failed to save trade. Please try again.', 'error');
+                console.error('Error details:', {
+                    message: err.message,
+                    code: err.code,
+                    details: err.details,
+                    hint: err.hint
+                });
+                showToast(`Failed to save trade: ${err.message}`, 'error');
             }
         });
 
@@ -7529,7 +7673,11 @@
             async upsertTrade(trade) {
                 if (sbClient) {
                     const { error } = await sbClient.from('trades').upsert(trade);
-                    if (!error) return true;
+                    if (error) {
+                        console.error('Supabase upsert error:', error);
+                        throw error;
+                    }
+                    return true;
                 }
                 const arr = await this.getTrades();
                 const idx = arr.findIndex(x => String(x.id) === String(trade.id));
