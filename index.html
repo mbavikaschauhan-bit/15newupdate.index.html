@@ -8365,7 +8365,7 @@
         const createPartialExitDetailsModal = () => {
             const modalHTML = `
                 <div id="partial-exit-details-modal" class="modal-overlay hidden">
-                    <div class="modal-content max-w-4xl" style="background-color: var(--bg-primary); border: 1px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+                    <div class="modal-content max-w-4xl" style="background-color: var(--bg-primary); border: 1px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 1.5rem;">
                         <!-- Header -->
                         <div class="flex justify-between items-center mb-6 pb-4 border-b" style="border-color: var(--border-color);">
                             <div class="flex items-center space-x-3">
@@ -8420,7 +8420,7 @@
 
                         <!-- Action Buttons -->
                         <div class="flex justify-end mt-6 pt-4 border-t" style="border-color: var(--border-color);">
-                            <button id="partial-exit-close-btn" class="px-4 py-2 text-sm font-medium text-white rounded-md hover:bg-gray-600" style="background-color: var(--text-primary);">
+                            <button id="partial-exit-close-btn" class="px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-600" style="background-color: var(--text-primary); color: var(--bg-primary);">
                                 Close
                             </button>
                         </div>
@@ -8759,7 +8759,7 @@
 
     <!-- Exit Trade Modal -->
     <div id="exit-trade-modal" class="modal-overlay hidden">
-        <div class="modal-content max-w-4xl" style="background-color: var(--bg-primary); border: 1px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <div class="modal-content max-w-4xl" style="background-color: var(--bg-primary); border: 1px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); padding: 1.5rem;">
             <!-- Header -->
             <div class="flex justify-between items-center mb-4 pb-4 border-b" style="border-color: var(--border-color);">
                 <div class="flex items-center space-x-3">
@@ -8792,18 +8792,18 @@
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Type</label>
-                                <input type="text" id="exit-trade-type" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" readonly>
+                                <input type="text" id="exit-trade-type" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" readonly>
                             </div>
                             
                             <!-- Entry Price and Quantity in one line -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Entry Price</label>
-                                    <input type="text" id="exit-trade-entry-price" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" readonly>
+                                    <input type="text" id="exit-trade-entry-price" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" readonly>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Quantity</label>
-                                    <input type="text" id="exit-trade-quantity" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" readonly>
+                                    <input type="text" id="exit-trade-quantity" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" readonly>
                                 </div>
                             </div>
                             
@@ -8811,17 +8811,17 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Stop Loss</label>
-                                    <input type="text" id="exit-trade-stop-loss" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" readonly>
+                                    <input type="text" id="exit-trade-stop-loss" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" readonly>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Target Price</label>
-                                    <input type="text" id="exit-trade-target" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" readonly>
+                                    <input type="text" id="exit-trade-target" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" readonly>
                                 </div>
                             </div>
                             
                             <div>
                                 <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Total Amount</label>
-                                <input type="text" id="exit-trade-total-amount" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" readonly>
+                                <input type="text" id="exit-trade-total-amount" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" readonly>
                             </div>
                         </div>
                     </div>
@@ -8834,11 +8834,11 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Exit Date</label>
-                                    <input type="date" id="exit-trade-date" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);">
+                                    <input type="date" id="exit-trade-date" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Exit Time</label>
-                                    <input type="time" id="exit-trade-time" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);">
+                                    <input type="time" id="exit-trade-time" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
                                 </div>
                             </div>
                             
@@ -8846,11 +8846,11 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Exit Price</label>
-                                    <input type="number" id="exit-trade-price" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" step="0.01" placeholder="0.00">
+                                    <input type="number" id="exit-trade-price" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" step="0.01" placeholder="0.00">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Exit Quantity</label>
-                                    <input type="number" id="exit-trade-exit-quantity" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" step="1" placeholder="0">
+                                    <input type="number" id="exit-trade-exit-quantity" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" step="1" placeholder="0">
                                 </div>
                             </div>
                             
@@ -8858,11 +8858,11 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Brokerage</label>
-                                    <input type="number" id="exit-trade-brokerage" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" step="0.01" placeholder="0.00">
+                                    <input type="number" id="exit-trade-brokerage" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" step="0.01" placeholder="0.00">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Charges</label>
-                                    <input type="number" id="exit-trade-charges" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);" step="0.01" placeholder="0.00">
+                                    <input type="number" id="exit-trade-charges" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" step="0.01" placeholder="0.00">
                                 </div>
                             </div>
                         </div>
@@ -8906,12 +8906,12 @@
                     <!-- Left Column - Strategy Tag and Psychology -->
                     <div class="space-y-6">
                         <!-- Strategy Tag Section -->
-                        <div class="p-4 rounded-lg" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                        <div class="p-4 rounded-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                             <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">Strategy and Outcome</h3>
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Strategy Tag</label>
-                                    <select id="exit-strategy" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);">
+                                    <select id="exit-strategy" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
                                         <option value="Price Action">Price Action</option>
                                         <option value="Support/Resistance">Support/Resistance</option>
                                         <option value="Trend Following">Trend Following</option>
@@ -8929,12 +8929,12 @@
                         </div>
 
                         <!-- Psychology Section -->
-                        <div class="p-4 rounded-lg" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                        <div class="p-4 rounded-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                             <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">Psychology</h3>
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Emotional State During Trade</label>
-                                    <select id="exit-emotional-state" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);">
+                                    <select id="exit-emotional-state" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
                                         <option value="">Select Emotional state</option>
                                         <option value="Confident">Confident</option>
                                         <option value="Nervous">Nervous</option>
@@ -8954,45 +8954,45 @@
                                     <div class="grid grid-cols-2 gap-2">
                                         <div class="space-y-2">
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Overtrading" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Overtrading" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Overtrading</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Exited Too Late" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Exited Too Late" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Exited Too Late</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Ignored Stop loss" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Ignored Stop loss" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Ignored Stop loss</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Exited Too Early" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Exited Too Early" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Exited Too Early</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="No clean Plan" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="No clean Plan" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">No clean Plan</span>
                                             </label>
                                         </div>
                                         <div class="space-y-2">
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Risked Too Much" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Risked Too Much" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Risked Too Much</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Ignored signals" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Ignored signals" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Ignored signals</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Revenge signals" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Revenge signals" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Revenge signals</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="Revenge Trading" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="Revenge Trading" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">Revenge Trading</span>
                                             </label>
                                             <label class="flex items-center text-sm">
-                                                <input type="checkbox" name="exit-mistakes" value="No Mistake" class="mr-2 h-4 w-4 rounded border-gray-300">
+                                                <input type="checkbox" name="exit-mistakes" value="No Mistake" class="mr-2 h-4 w-4 rounded" style="border-color: var(--border-color); background-color: var(--bg-primary);">
                                                 <span style="color: var(--text-primary);">No Mistake</span>
                                             </label>
                                         </div>
@@ -9005,12 +9005,12 @@
                     <!-- Right Column - Outcome Summary and Trade Journal & Notes -->
                     <div class="space-y-6">
                         <!-- Outcome Summary Section -->
-                        <div class="p-4 rounded-lg" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                        <div class="p-4 rounded-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                             <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">Strategy and Outcome</h3>
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Outcome Summary</label>
-                                    <select id="exit-outcome-summary" class="w-full px-3 py-2 text-sm border rounded-md bg-white" style="border-color: #d1d5db; color: var(--text-primary);">
+                                    <select id="exit-outcome-summary" class="w-full px-3 py-2 text-sm border rounded-md" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
                                         <option value="Select outcome summary">Select outcome summary</option>
                                         <option value="Target Hit">Target Hit</option>
                                         <option value="Stop Loss Hit">Stop Loss Hit</option>
@@ -9023,11 +9023,11 @@
                         </div>
 
                         <!-- Trade Journal & Notes Section -->
-                        <div class="p-4 rounded-lg" style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
+                        <div class="p-4 rounded-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                             <h3 class="text-lg font-semibold mb-4" style="color: var(--text-primary);">Trade Journal & Notes</h3>
                             <div>
                                 <label class="block text-sm font-medium mb-1" style="color: var(--text-secondary);">Reason for entry/exit, learning, etc.</label>
-                                <textarea id="exit-trade-notes" rows="8" class="w-full px-3 py-2 text-sm border rounded-md bg-white resize-none" style="border-color: #d1d5db; color: var(--text-primary);" placeholder="What was your thesis for this trade? What did you learn?"></textarea>
+                                <textarea id="exit-trade-notes" rows="8" class="w-full px-3 py-2 text-sm border rounded-md resize-none" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);" placeholder="What was your thesis for this trade? What did you learn?"></textarea>
                             </div>
                         </div>
                     </div>
@@ -9039,7 +9039,7 @@
                 <button id="exit-trade-cancel" class="px-4 py-2 text-sm font-medium border rounded-md hover:bg-gray-50" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
                     Cancel
                 </button>
-                <button id="exit-trade-submit" class="px-4 py-2 text-sm font-medium text-white rounded-md hover:bg-gray-800" style="background-color: var(--text-primary);">
+                <button id="exit-trade-submit" class="px-4 py-2 text-sm font-medium rounded-md hover:bg-gray-800" style="background-color: var(--text-primary); color: var(--bg-primary);">
                     Exit Trade
                 </button>
             </div>
