@@ -480,6 +480,26 @@
             border-bottom: 1px solid #334155;
         }
         
+        /* Fix header and sidebar to stay at top */
+        header {
+            position: fixed !important;
+            top: 0 !important;
+            z-index: 30 !important;
+        }
+        
+        #sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            z-index: 40 !important;
+        }
+        
+        /* Ensure main content doesn't overlap with fixed header */
+        @media (min-width: 768px) {
+            #main-content {
+                margin-left: 16rem;
+            }
+        }
+        
         [data-theme="light"] .trade-details-modal .modal-header {
             border-bottom-color: var(--border-color);
         }
@@ -794,7 +814,7 @@
     <!-- Main App Wrapper -->
     <div id="app-container" class="hidden relative h-screen md:flex">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 flex-shrink-0 flex-col fixed inset-y-0 left-0 z-40 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out flex" style="background-color: var(--bg-primary); border-right: 1px solid var(--border-color);">
+        <aside id="sidebar" class="w-64 flex-shrink-0 flex-col fixed inset-y-0 left-0 z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out flex" style="background-color: var(--bg-primary); border-right: 1px solid var(--border-color);">
             <div class="h-16 flex items-center justify-center px-4" style="border-bottom: 1px solid var(--border-color);">
                 <img src="logo.png" alt="Stoclix Trading Journal" class="h-10 w-auto object-contain" />
             </div>
@@ -832,7 +852,7 @@
 
         <!-- Main Content -->
         <div class="flex flex-col flex-1 w-full overflow-hidden">
-             <header class="sticky top-0 backdrop-blur-lg z-30 h-16 flex items-center justify-between px-4 md:px-8" style="background-color: var(--bg-primary); border-bottom: 1px solid var(--border-color);">
+             <header class="fixed top-0 backdrop-blur-lg z-30 h-16 flex items-center justify-between px-4 md:px-8" style="background-color: var(--bg-primary); border-bottom: 1px solid var(--border-color); left: 16rem; right: 0;">
                 <div class="flex items-center space-x-4">
                     <button id="menu-toggle-btn" class="md:hidden p-2 rounded-full" style="background-color: var(--bg-secondary); color: var(--text-primary);">
                         <i data-feather="menu" class="h-6 w-6"></i>
@@ -856,7 +876,7 @@
                 </div>
             </header>
             
-            <main id="main-content" class="flex-1 overflow-y-auto">
+            <main id="main-content" class="flex-1 overflow-y-auto" style="padding-top: 4rem;">
                 <div class="p-4 md:p-8">
                     <!-- Dashboard Page -->
                     <div id="dashboard" class="page active">
