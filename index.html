@@ -7634,36 +7634,14 @@
         // Ensure export buttons are wired on initial load as well
         wireCsvButtons();
         
-        // Wait for Chart.js to load, then render charts and dashboard
-        setTimeout(async () => {
+
+        // Wait for Chart.js to load, then render charts
+        setTimeout(() => {
             if (typeof Chart !== 'undefined') {
-                // Load data first, then render dashboard and charts
-                try {
-                    appState.trades = await dataStore.getTrades();
-                    appState.ledger = await dataStore.getLedger();
-                    console.log('Initial data loaded:', { trades: appState.trades.length, ledger: appState.ledger.length });
-                    
-                    // Render dashboard with loaded data
-                    await renderDashboard();
-                } catch (error) {
-                    console.error('Error loading initial data:', error);
-                    // Fallback to just rendering charts
-                    renderAllCharts();
-                }
+                renderAllCharts();
             } else {
                 console.warn('Chart.js not loaded, retrying...');
-                setTimeout(async () => {
-                    if (typeof Chart !== 'undefined') {
-                        try {
-                            appState.trades = await dataStore.getTrades();
-                            appState.ledger = await dataStore.getLedger();
-                            await renderDashboard();
-                        } catch (error) {
-                            console.error('Error loading initial data on retry:', error);
-                            renderAllCharts();
-                        }
-                    }
-                }, 1000);
+                setTimeout(() => renderAllCharts(), 1000);
             }
         }, 500);
 
@@ -7745,6 +7723,22 @@
                 return true;
             }
         };
+        
+        // Load initial data and render dashboard immediately after dataStore is ready
+        const loadInitialData = async () => {
+            try {
+                appState.trades = await dataStore.getTrades();
+                appState.ledger = await dataStore.getLedger();
+                await renderDashboard();
+                console.log('Initial data loaded and dashboard rendered');
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
+        };
+        
+        // Load data immediately
+        loadInitialData();
+        
         seedBtn?.addEventListener('click', () => {
             try {
                 const now = new Date();
