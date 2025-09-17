@@ -8,6 +8,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Apply theme immediately to prevent flicker
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Set theme toggle button state immediately when DOM is ready
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeToggle = document.getElementById('theme-toggle');
+                if (themeToggle) {
+                    themeToggle.checked = savedTheme === 'dark';
+                }
+            });
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -991,20 +1006,20 @@
                                     <div class="space-y-2">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center space-x-2">
-                                                <div id="long-dot" class="w-3 h-3 rounded-full" style="background-color: #000;"></div>
+                                                <div id="long-dot" class="w-3 h-3 rounded-full" style="background-color: #10b981;"></div>
                                                 <span class="text-sm" style="color: var(--text-primary);">Long</span>
                                             </div>
                                             <span id="long-percentage" class="text-sm font-medium" style="color: var(--text-primary);">0%</span>
                                         </div>
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center space-x-2">
-                                                <div id="short-dot" class="w-3 h-3 rounded-full" style="background-color: #9ca3af;"></div>
+                                                <div id="short-dot" class="w-3 h-3 rounded-full" style="background-color: #ef4444;"></div>
                                                 <span class="text-sm" style="color: var(--text-primary);">Short</span>
                                             </div>
                                             <span id="short-percentage" class="text-sm font-medium" style="color: var(--text-primary);">0%</span>
                                         </div>
                                         <div class="mt-2">
-                                            <div id="long-bar" class="h-2 rounded-full" style="background-color: #000; width: 0%;"></div>
+                                            <div id="long-bar" class="h-2 rounded-full" style="background-color: #10b981; width: 0%;"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -3194,9 +3209,13 @@
         const transactionTitle = document.getElementById('transaction-modal-title');
         const transactionSubmitBtn = document.getElementById('transaction-submit-btn');
         let currentTxType = 'Deposit';
+        let isEditMode = false;
+        let editingEntry = null;
 
         const openTransactionModal = (type) => {
             currentTxType = type;
+            isEditMode = false;
+            editingEntry = null;
             transactionTitle.textContent = type === 'Deposit' ? 'Deposit Funds' : 'Withdraw Funds';
             transactionSubmitBtn.querySelector('.btn-text').textContent = type === 'Deposit' ? 'Add Deposit' : 'Add Withdrawal';
             transactionForm.reset();
@@ -3204,6 +3223,9 @@
         };
         const closeTransactionModal = () => {
             transactionModal.classList.add('hidden');
+            // Reset edit mode when modal is closed
+            isEditMode = false;
+            editingEntry = null;
         };
         document.querySelectorAll('#transaction-modal .close-modal-btn').forEach(btn => btn.addEventListener('click', closeTransactionModal));
         fmDepositBtn?.addEventListener('click', () => openTransactionModal('Deposit'));
@@ -3213,15 +3235,43 @@
             const amount = parseFloat(document.getElementById('transaction-amount').value) || 0;
             const date = document.getElementById('transaction-date').value || new Date().toISOString().slice(0,10);
             const notes = document.getElementById('transaction-notes').value || '';
-            const entry = { id: `${Date.now()}`, type: currentTxType, amount, date, notes };
+            
             try {
-                await dataStore.upsertLedger(entry);
-                appState.ledger = await dataStore.getLedger();
-                renderFundManagement();
-                renderDashboard();
-                closeTransactionModal();
+                if (isEditMode && editingEntry) {
+                    // Update existing entry
+                    console.log('Updating entry:', editingEntry);
+                    const updatedEntry = { ...editingEntry, amount, date, notes };
+                    await dataStore.upsertLedger(updatedEntry);
+                    appState.ledger = await dataStore.getLedger();
+                    
+                    try {
+                        renderFundManagement();
+                        renderDashboard();
+                    } catch (renderErr) {
+                        console.error('Render error:', renderErr);
+                    }
+                    
+                    showToast(`${editingEntry.type} updated successfully!`, 'success');
+                    closeTransactionModal();
+                } else {
+                    // Create new entry
+                    const entry = { id: `${Date.now()}`, type: currentTxType, amount, date, notes };
+                    await dataStore.upsertLedger(entry);
+                    appState.ledger = await dataStore.getLedger();
+                    
+                    try {
+                        renderFundManagement();
+                        renderDashboard();
+                    } catch (renderErr) {
+                        console.error('Render error:', renderErr);
+                    }
+                    
+                    showToast(`${currentTxType} of ${formatCurrency(amount)} completed successfully!`, 'success');
+                    closeTransactionModal();
+                }
             } catch (err) {
                 console.error('Failed to save ledger entry', err);
+                showToast('Failed to save transaction. Please try again.', 'error');
             }
         });
 
@@ -3294,6 +3344,10 @@
             appState.accountValue = accountValue;
                 const availableCash = Math.max(0, accountValue - deployedCapital);
                 
+                // Calculate starting balance (first deposit or 0)
+                const startingBalance = ledger.length > 0 ? 
+                    ledger.filter(l => l.type === 'Deposit')[0]?.amount || 0 : 0;
+                
                 // Calculate open risk percentage and amount from active trades (same as Fund Management)
                 const openRiskData = (() => {
                     const activeTrades = trades.filter(trade => !trade.exit_date || !trade.exit_price);
@@ -3324,7 +3378,7 @@
                 <div><p class="text-sm" style="color: var(--text-secondary);">DEPLOYED CAPITAL</p><p class="${txt}">${formatCurrency(deployedCapital)}</p></div>
                 <div><p class="text-sm" style="color: var(--text-secondary);">TOTAL DEPOSITS</p><p class="${txt}">${formatCurrency(deposits)}</p></div>
                 <div><p class="text-sm" style="color: var(--text-secondary);">TOTAL WITHDRAWN</p><p class="${txt}">${formatCurrency(withdrawals)}</p></div>
-                <div><p class="text-sm" style="color: var(--text-secondary);">STARTING BALANCE</p><p class="${txt}">₹0.00</p></div>
+                <div><p class="text-sm" style="color: var(--text-secondary);">STARTING BALANCE</p><p class="${txt}">${formatCurrency(startingBalance)}</p></div>
                 <div><p class="text-sm font-medium" style="color: var(--text-secondary);">TOTAL OPEN RISK <span class="text-xs">(${openRiskData.percentage.toFixed(1)}%)</span></p><p class="${txt}">${formatCurrency(openRiskData.amount)}</p></div>`;
                 }
                 
@@ -3577,6 +3631,7 @@
             try {
                 // Load ledger
                 appState.ledger = await dataStore.getLedger();
+                console.log('renderFundManagement: ledger data:', appState.ledger);
 
                 // Calculate all financial metrics
                 const deposits = appState.ledger.filter(l => l.type === 'Deposit').reduce((s, l) => s + (l.amount || 0), 0);
@@ -3589,6 +3644,19 @@
                         const netPnl = calculateNetPnl(trade);
                         return total + netPnl;
                     }, 0);
+                
+                // Calculate net account value first (needed for risk calculation)
+                const netAccountValue = deposits - withdrawals + realizedPnl;
+                
+                // Calculate deployed capital (money currently in active trades)
+                const deployedCapital = appState.trades
+                    .filter(trade => !trade.exit_date || !trade.exit_price)
+                    .reduce((total, trade) => {
+                        return total + (trade.entry_price * trade.quantity);
+                    }, 0);
+                
+                // Calculate available cash
+                const availableCash = deposits - withdrawals - deployedCapital;
                 
                 // Calculate open risk percentage and amount from active trades
                 const openRiskData = (() => {
@@ -3609,19 +3677,6 @@
                     return { percentage, amount: totalRiskAmount };
                 })();
                 
-                // Calculate deployed capital (money currently in active trades)
-                const deployedCapital = appState.trades
-                    .filter(trade => !trade.exit_date || !trade.exit_price)
-                    .reduce((total, trade) => {
-                        return total + (trade.entry_price * trade.quantity);
-                    }, 0);
-                
-                // Calculate available cash
-                const availableCash = deposits - withdrawals - deployedCapital;
-                
-                // Calculate net account value (we need this for risk calculation)
-                const netAccountValue = deposits - withdrawals + realizedPnl;
-                
                 // Starting account balance (first deposit or 0)
                 const startingBalance = appState.ledger.length > 0 ? 
                     appState.ledger.filter(l => l.type === 'Deposit')[0]?.amount || 0 : 0;
@@ -3637,6 +3692,8 @@
                 updateRiskCard('total-open-risk-percentage', 'total-open-risk-amount', openRiskData.percentage, openRiskData.amount);
 
                 const tbody = document.getElementById('fund-ledger-body');
+                console.log('renderFundManagement: tbody element:', tbody);
+                console.log('renderFundManagement: ledger length:', appState.ledger.length);
                 if (tbody) {
                     tbody.innerHTML = appState.ledger.map(item => `
                         <tr>
@@ -3657,28 +3714,23 @@
                             const id = btn.getAttribute('data-id');
                             const entry = appState.ledger.find(x => String(x.id) === String(id));
                             if (!entry) return;
-                            // open modal prefilled
+                            
+                            // Set edit mode
+                            isEditMode = true;
+                            editingEntry = entry;
                             currentTxType = entry.type;
+                            
+                            // Fill form with existing data
                             document.getElementById('transaction-amount').value = entry.amount || 0;
                             document.getElementById('transaction-date').value = entry.date || '';
                             document.getElementById('transaction-notes').value = entry.notes || '';
+                            
+                            // Update modal title and button text
                             transactionTitle.textContent = entry.type === 'Deposit' ? 'Deposit Funds' : 'Withdraw Funds';
                             transactionSubmitBtn.querySelector('.btn-text').textContent = entry.type === 'Deposit' ? 'Update Deposit' : 'Update Withdrawal';
+                            
+                            // Show modal
                             transactionModal.classList.remove('hidden');
-                            transactionForm.onsubmit = async (e) => {
-                                e.preventDefault();
-                                const amount = parseFloat(document.getElementById('transaction-amount').value) || 0;
-                                const date = document.getElementById('transaction-date').value || new Date().toISOString().slice(0,10);
-                                const notes = document.getElementById('transaction-notes').value || '';
-                                try {
-                                    await dataStore.upsertLedger({ ...entry, amount, date, notes });
-                                    appState.ledger = await dataStore.getLedger();
-                                    renderFundManagement();
-                                    renderDashboard();
-                                    transactionModal.classList.add('hidden');
-                                    transactionForm.onsubmit = null; // revert to default
-                                } catch (err) { console.error('update ledger failed', err); }
-                            };
                         });
                     });
                     tbody.querySelectorAll('button[data-ledger-action="delete"]').forEach(btn => {
@@ -4904,8 +4956,8 @@
                             const daysOpen = Math.ceil((currentDate - entryDate) / (1000 * 60 * 60 * 24));
                             const totalValue = (trade.entry_price || 0) * (trade.quantity || 0);
                             
-                            const typeColor = trade.direction === 'Long' ? '#000' : '#ef4444';
-                            const typeBg = trade.direction === 'Long' ? '#000' : '#ef4444';
+                            const typeColor = trade.direction === 'Long' ? '#10b981' : '#ef4444';
+                            const typeBg = trade.direction === 'Long' ? '#10b981' : '#ef4444';
                             
                             return `
                                 <div class="flex items-center justify-between p-4 rounded-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
@@ -8636,12 +8688,16 @@
             // Function to update account summary with filtered data
             function updateAccountSummary(filteredTrades, netPnl) {
                 const ledger = appState.ledger || [];
-                const deposits = ledger.filter(l => l.type === 'deposit').reduce((sum, l) => sum + (l.amount || 0), 0);
-                const withdrawals = ledger.filter(l => l.type === 'withdrawal').reduce((sum, l) => sum + (l.amount || 0), 0);
+                const deposits = ledger.filter(l => l.type === 'Deposit').reduce((sum, l) => sum + (l.amount || 0), 0);
+                const withdrawals = ledger.filter(l => l.type === 'Withdrawal').reduce((sum, l) => sum + (l.amount || 0), 0);
                 const deployedCapital = filteredTrades.filter(t => t.exit_price && t.exit_date).reduce((sum, t) => sum + (t.quantity * t.entry_price), 0);
                 
                 const accountValue = deposits - withdrawals + netPnl;
                 const availableCash = Math.max(0, accountValue - deployedCapital);
+                
+                // Calculate starting balance (first deposit or 0)
+                const startingBalance = ledger.length > 0 ? 
+                    ledger.filter(l => l.type === 'Deposit')[0]?.amount || 0 : 0;
                 
                 // Calculate open risk percentage and amount from active trades (same as Fund Management)
                 const openRiskData = (() => {
@@ -8672,7 +8728,7 @@
                         <div><p class="text-sm" style="color: var(--text-secondary);">DEPLOYED CAPITAL</p><p class="${txt}">${formatCurrency(deployedCapital)}</p></div>
                         <div><p class="text-sm" style="color: var(--text-secondary);">TOTAL DEPOSITS</p><p class="${txt}">${formatCurrency(deposits)}</p></div>
                         <div><p class="text-sm" style="color: var(--text-secondary);">TOTAL WITHDRAWN</p><p class="${txt}">${formatCurrency(withdrawals)}</p></div>
-                        <div><p class="text-sm" style="color: var(--text-secondary);">STARTING BALANCE</p><p class="${txt}">₹0.00</p></div>
+                        <div><p class="text-sm" style="color: var(--text-secondary);">STARTING BALANCE</p><p class="${txt}">${formatCurrency(startingBalance)}</p></div>
                         <div><p class="text-sm font-medium" style="color: var(--text-secondary);">TOTAL OPEN RISK <span class="text-xs">(${openRiskData.percentage.toFixed(1)}%)</span></p><p class="${txt}">${formatCurrency(openRiskData.amount)}</p></div>`;
                 }
             }
@@ -9052,5 +9108,3 @@
 </html>
 
 </html>
-
-
