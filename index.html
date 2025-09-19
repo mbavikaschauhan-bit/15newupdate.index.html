@@ -762,6 +762,93 @@
             visibility: visible !important;
         }
         
+        /* Trade History Action Icons and Menu Styles */
+        .action-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+        
+        .action-icon:hover {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .exit-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            font-size: 12px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .exit-btn:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        .overflow-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            min-width: 140px;
+            padding: 4px 0;
+        }
+        
+        [data-theme="dark"] .overflow-menu {
+            background: var(--bg-primary);
+            border-color: var(--border-color);
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: background-color 0.2s ease;
+        }
+        
+        .menu-item:hover {
+            background-color: var(--bg-secondary);
+        }
+        
+        .menu-item svg {
+            flex-shrink: 0;
+        }
+        
+        /* Ensure actions column content is aligned in one line */
+        .actions-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
         /* Responsive tooltip positioning */
         @media (max-width: 640px) {
             .info-tooltip {
@@ -1351,10 +1438,12 @@
 
                             <!-- Journal Tab Content -->
                             <div id="journal-tab-content" class="hidden space-y-6">
-                                <!-- Strategy and Outcome Section - Above Psychology and Notes -->
+                                <!-- Main Journal Form Container -->
+                                <div class="py-4 px-3 rounded-lg shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
                                 <div class="flex justify-center">
                                     <div class="w-full">
-                                        <div class="p-3 rounded-md shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                                            <!-- Strategy and Outcome Section - Above Psychology and Notes -->
+                                            <div class="p-3 rounded-md shadow-sm mb-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
                                             <h3 class="text-base font-semibold mb-2 border-b pb-1" style="color: var(--text-primary); border-color: var(--border-color);">Strategy and Outcome</h3>
                                             <div class="grid grid-cols-2 gap-3">
                                                 <div>
@@ -1384,16 +1473,10 @@
                                                         <option>Exited Early (Loss)</option>
                                                         <option>Break Even</option>
                                                     </select>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Main Journal Form Container -->
-                                <div class="py-4 px-3 rounded-lg shadow-sm" style="background-color: var(--bg-primary); border: 1px solid var(--border-color);">
-                                    <div class="flex justify-center">
-                                        <div class="w-full">
                                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <!-- Left Column - Psychology -->
                                         <div class="p-3 rounded-md shadow-sm" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
@@ -2450,6 +2533,8 @@
             }
         };
 
+        const collection = (collectionName) => collectionName;
+        
         const query = (collectionName, ...constraints) => {
             let q = { collection: collectionName, filters: [], orderBy: null, limit: null };
             constraints.forEach(c => { q = c(q); });
@@ -3170,6 +3255,7 @@
                 renderDashboard();
             }
             if (pageId === 'trade-history') {
+                console.log('Navigating to trade-history page');
                 renderTradeHistory();
             }
             if (pageId === 'fund-management') {
@@ -3474,120 +3560,246 @@
                             <td class="px-6 py-3">${t.quantity ?? '—'}</td>
                             <td class="px-6 py-3">${t.exit_price ?? '—'}</td>
                             <td class="px-6 py-3">${t.exit_date || '—'}</td>
-                            <td class="px-6 py-3 space-x-2">
-                                <button class="text-blue-600 underline text-xs" data-action="edit" data-id="${t.id}">Edit</button>
-                                ${!isClosed ? `<button class="text-green-600 underline text-xs" data-action="exit" data-id="${t.id}">Exit</button>` : ''}
-                                <button class="text-red-600 underline text-xs" data-action="delete" data-id="${t.id}">Delete</button>
+                            <td class="px-6 py-3 actions-cell">
+                                ${isClosed ? 
+                                    // Closed trades: Show Edit and Delete icons only
+                                    `<button class="action-icon" data-action="edit" data-id="${t.id}" title="Edit Trade">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="action-icon" data-action="delete" data-id="${t.id}" title="Delete Trade">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"></polyline>
+                                            <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                                        </svg>
+                                    </button>` :
+                                    // Partial/Open trades: Show Exit button and three-dot menu
+                                    `<button class="exit-btn" data-action="exit" data-id="${t.id}">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                                            <path d="M7 17L17 7M17 7H7M17 7V17"></path>
+                                        </svg>
+                                        Exit
+                                    </button>
+                                    <div class="relative">
+                                        <button class="action-icon overflow-menu-btn" data-action="menu" data-id="${t.id}" title="More Actions">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="1"></circle>
+                                                <circle cx="19" cy="12" r="1"></circle>
+                                                <circle cx="5" cy="12" r="1"></circle>
+                                            </svg>
+                                        </button>
+                                        <div class="overflow-menu hidden" data-menu-for="${t.id}">
+                                            <button class="menu-item" data-action="exit" data-id="${t.id}">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M7 17L17 7M17 7H7M17 7V17"></path>
+                                                </svg>
+                                                Exit Trade
+                                            </button>
+                                            <button class="menu-item" data-action="edit" data-id="${t.id}">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                </svg>
+                                                Edit
+                                            </button>
+                                            <button class="menu-item" data-action="delete" data-id="${t.id}">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="3,6 5,6 21,6"></polyline>
+                                                    <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>`
+                                }
                             </td>
                         </tr>`;
                 }).join('');
                 tbody.innerHTML = rowsHtml;
-
-                // Row actions
-                tbody.querySelectorAll('button[data-action="edit"]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.getAttribute('data-id');
-                        const trade = appState.trades.find(x => String(x.id) === String(id));
-                        if (!trade) return;
-                        // populate form
-                        document.getElementById('trade-id').value = trade.id || '';
-                        document.getElementById('asset-input').value = trade.asset || '';
-                        // Split entry datetime into date and time
-                        if (trade.entry_date) {
-                            const entryDateTime = new Date(trade.entry_date);
-                            if (!isNaN(entryDateTime.getTime())) {
-                                document.getElementById('entry-date').value = entryDateTime.toISOString().split('T')[0];
-                                document.getElementById('entry-time').value = entryDateTime.toTimeString().slice(0, 5);
-                            } else {
-                                console.warn('Invalid entry_date in form editing:', trade.entry_date, 'for trade:', trade);
-                            }
-                        } else {
-                            document.getElementById('entry-date').value = '';
-                            document.getElementById('entry-time').value = '';
-                        }
-                        document.getElementById('entry-price').value = trade.entry_price ?? '';
-                        document.getElementById('quantity').value = trade.quantity ?? '';
-                        document.getElementById('stop-loss').value = trade.stop_loss ?? '';
-                        document.getElementById('target').value = trade.target ?? '';
-                        // Split exit datetime into date and time
-                        if (trade.exit_date) {
-                            const exitDateTime = new Date(trade.exit_date);
-                            if (!isNaN(exitDateTime.getTime())) {
-                                document.getElementById('exit-date').value = exitDateTime.toISOString().split('T')[0];
-                                document.getElementById('exit-time').value = exitDateTime.toTimeString().slice(0, 5);
-                            } else {
-                                console.warn('Invalid exit_date in form editing:', trade.exit_date, 'for trade:', trade);
-                            }
-                        } else {
-                            document.getElementById('exit-date').value = '';
-                            document.getElementById('exit-time').value = '';
-                        }
-                        document.getElementById('exit-price').value = trade.exit_price ?? '';
-                        document.getElementById('exit-quantity').value = trade.exit_quantity ?? '';
-                        document.getElementById('brokerage').value = trade.brokerage ?? '';
-                        document.getElementById('other-fees').value = trade.other_fees ?? '';
-                        document.getElementById('strategy').value = trade.strategy || 'Price Action';
-                        document.getElementById('outcome-summary').value = trade.outcomeSummary || 'Select Outcome Summary';
-                        document.getElementById('reasons').value = trade.reasons || '';
-                        
-                        // Populate Psychology fields
-                        const emotionalStateSelect = document.getElementById('emotional-state');
-                        if (emotionalStateSelect) {
-                            emotionalStateSelect.value = trade.emotionalState || '';
-                        }
-                        
-                        // Clear all mistake checkboxes first
-                        document.querySelectorAll('input[name="mistakes"]').forEach(checkbox => {
-                            checkbox.checked = false;
-                        });
-                        
-                        // Check the mistakes that were previously selected
-                        if (trade.mistakes && Array.isArray(trade.mistakes)) {
-                            trade.mistakes.forEach(mistake => {
-                                const checkbox = document.querySelector(`input[name="mistakes"][value="${mistake}"]`);
-                                if (checkbox) {
-                                    checkbox.checked = true;
-                                }
-                            });
-                        }
-                        
-                        updateCalculations();
-                        navigateTo('add-trade');
-                    });
-                });
-                tbody.querySelectorAll('button[data-action="delete"]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.getAttribute('data-id');
-                        showConfirmationModal('Delete this trade?', async () => {
-                            try {
-                                await dataStore.deleteTrade(id);
-                                appState.trades = await dataStore.getTrades();
-                                renderTradeHistory();
-                                renderDashboard();
-                            } catch (err) { console.error('delete trade failed', err); }
-                        }, 'Confirm Deletion', 'Delete');
-                    });
-                });
-                tbody.querySelectorAll('button[data-action="exit"]').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = btn.getAttribute('data-id');
-                        const trade = appState.trades.find(x => String(x.id) === String(id));
-                        if (!trade) return;
-                        showExitTradeModal(trade);
-                    });
-                });
-                tbody.querySelectorAll('span[data-action="view-partial"]').forEach(span => {
-                    span.addEventListener('click', () => {
-                        const id = span.getAttribute('data-id');
-                        const trade = appState.trades.find(x => String(x.id) === String(id));
-                        if (!trade) return;
-                        showPartialExitDetailsModal(trade);
-                    });
-                });
             } catch (e) {
                 console.error('renderTradeHistory error', e);
             }
         };
+
+        // Document-level event delegation for trade table actions (works regardless of re-renders)
+        const setupTradeTableEventListeners = () => {
+            console.log('Setting up document-level trade table event listeners...');
+            
+            // Use document-level event delegation - this will work even if elements are re-rendered
+            document.addEventListener('click', (e) => {
+                // Only handle clicks within the trade history table
+                const tradeTable = e.target.closest('#trade-history-tbody');
+                if (!tradeTable) return;
+                
+                console.log('Trade table clicked:', e.target);
+                const target = e.target.closest('[data-action]');
+                if (!target) {
+                    console.log('No data-action found');
+                    return;
+                }
+                
+                const action = target.getAttribute('data-action');
+                const id = target.getAttribute('data-id');
+                console.log('Action:', action, 'ID:', id);
+                
+                if (action === 'edit') {
+                    console.log('Edit action triggered for trade ID:', id);
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Find the trade and populate the form
+                    const trade = appState.trades.find(x => String(x.id) === String(id));
+                    if (!trade) {
+                        console.error('Trade not found for ID:', id);
+                        return;
+                    }
+                    
+                    console.log('Found trade:', trade);
+                    
+                    // Populate form with trade data - with defensive checks
+                    const setFieldValue = (fieldId, value) => {
+                        const field = document.getElementById(fieldId);
+                        if (field) {
+                            field.value = value || '';
+                        } else {
+                            console.warn(`Form field not found: ${fieldId}`);
+                        }
+                    };
+                    
+                    setFieldValue('trade-id', trade.id);
+                    setFieldValue('asset-input', trade.asset);
+                    
+                    // Split entry datetime into date and time
+                    if (trade.entry_date) {
+                        const entryDateTime = new Date(trade.entry_date);
+                        if (!isNaN(entryDateTime.getTime())) {
+                            setFieldValue('entry-date', entryDateTime.toISOString().split('T')[0]);
+                            setFieldValue('entry-time', entryDateTime.toTimeString().slice(0, 5));
+                        } else {
+                            console.warn('Invalid entry_date in form editing:', trade.entry_date, 'for trade:', trade);
+                            setFieldValue('entry-date', '');
+                            setFieldValue('entry-time', '');
+                        }
+                    } else {
+                        setFieldValue('entry-date', '');
+                        setFieldValue('entry-time', '');
+                    }
+                    
+                    setFieldValue('entry-price', trade.entry_price);
+                    setFieldValue('quantity', trade.quantity);
+                    setFieldValue('stop-loss', trade.stop_loss);
+                    setFieldValue('target', trade.target);
+                    
+                    // Split exit datetime into date and time
+                    if (trade.exit_date) {
+                        const exitDateTime = new Date(trade.exit_date);
+                        if (!isNaN(exitDateTime.getTime())) {
+                            setFieldValue('exit-date', exitDateTime.toISOString().split('T')[0]);
+                            setFieldValue('exit-time', exitDateTime.toTimeString().slice(0, 5));
+                        } else {
+                            console.warn('Invalid exit_date in form editing:', trade.exit_date, 'for trade:', trade);
+                            setFieldValue('exit-date', '');
+                            setFieldValue('exit-time', '');
+                        }
+                    } else {
+                        setFieldValue('exit-date', '');
+                        setFieldValue('exit-time', '');
+                    }
+                    
+                    setFieldValue('exit-price', trade.exit_price);
+                    setFieldValue('exit-quantity', trade.exit_quantity);
+                    setFieldValue('brokerage', trade.brokerage);
+                    setFieldValue('other-fees', trade.other_fees);
+                    setFieldValue('direction', trade.direction || 'Long');
+                    setFieldValue('segment', trade.segment || 'Equity');
+                    setFieldValue('trading-style', trade.tradingStyle || 'Intraday');
+                    setFieldValue('strategy', trade.strategy || 'Price Action');
+                    setFieldValue('outcome-summary', trade.outcomeSummary);
+                    setFieldValue('emotional-state', trade.emotionalState);
+                    setFieldValue('reasons', trade.reasons);
+                    
+                    // Clear all mistake checkboxes first
+                    document.querySelectorAll('input[name="mistakes"]').forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    
+                    // Check the mistakes that were previously selected
+                    if (trade.mistakes && Array.isArray(trade.mistakes)) {
+                        trade.mistakes.forEach(mistake => {
+                            const checkbox = document.querySelector(`input[name="mistakes"][value="${mistake}"]`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                            }
+                        });
+                    }
+                    
+                    updateCalculations();
+                    navigateTo('add-trade');
+                    console.log('Edit completed - navigated to add-trade page');
+                    
+                } else if (action === 'delete') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showConfirmationModal('Delete this trade?', async () => {
+                        try {
+                            await dataStore.deleteTrade(id);
+                            appState.trades = await dataStore.getTrades();
+                            renderTradeHistory();
+                            renderDashboard();
+                        } catch (err) { console.error('delete trade failed', err); }
+                    }, 'Confirm Deletion', 'Delete');
+                    
+                } else if (action === 'exit') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const trade = appState.trades.find(x => String(x.id) === String(id));
+                    if (!trade) return;
+                    showExitTradeModal(trade);
+                    
+                } else if (action === 'menu') {
+                    // Toggle overflow menu
+                    const menu = document.querySelector(`[data-menu-for="${id}"]`);
+                    if (menu) {
+                        // Close all other menus first
+                        document.querySelectorAll('.overflow-menu').forEach(m => {
+                            if (m !== menu) m.classList.add('hidden');
+                        });
+                        menu.classList.toggle('hidden');
+                    }
+                } else if (action === 'view-partial') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const trade = appState.trades.find(x => String(x.id) === String(id));
+                    if (!trade) return;
+                    showPartialExitDetailsModal(trade);
+                }
+            });
+            
+            console.log('Document-level trade table event listener attached successfully');
+        };
+
+        // Global event listeners for overflow menu management (set up once)
+        const setupGlobalEventListeners = () => {
+            // Close overflow menus when clicking outside or pressing Escape
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.overflow-menu') && !e.target.closest('.overflow-menu-btn')) {
+                    document.querySelectorAll('.overflow-menu').forEach(menu => {
+                        menu.classList.add('hidden');
+                    });
+                }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.overflow-menu').forEach(menu => {
+                        menu.classList.add('hidden');
+                    });
+                }
+            });
+        };
+
         // Helper function to update metric cards
         const updateMetricCard = (elementId, value, colorClass) => {
             const element = document.getElementById(elementId);
@@ -4561,7 +4773,7 @@
                 console.error('renderAdvancedMetrics error', e);
             }
         };
-        const renderStatement = () => {
+        const renderStatement = (filters = {}) => {
             try {
                 const statementBody = document.getElementById('statement-tbody');
                 if (!statementBody) return;
@@ -4598,7 +4810,69 @@
                     notes: l.notes || '—'
                 }));
 
-                const allRows = [...tradeRows, ...ledgerRows].sort((a,b) => String(a.date).localeCompare(String(b.date)));
+                let allRows = [...tradeRows, ...ledgerRows].sort((a,b) => String(a.date).localeCompare(String(b.date)));
+                
+                // Apply filters if provided
+                if (filters.transactionType && filters.transactionType !== 'All Types') {
+                    allRows = allRows.filter(row => row.type === filters.transactionType);
+                }
+                
+                if (filters.strategy && filters.strategy !== 'All Strategies') {
+                    allRows = allRows.filter(row => row.strategy === filters.strategy);
+                }
+                
+                if (filters.startDate || filters.endDate) {
+                    allRows = allRows.filter(row => {
+                        if (!row.date || row.date === '—') return false;
+                        
+                        // Parse date from various formats (dd/mm/yyyy, yyyy-mm-dd, etc.)
+                        let rowDate;
+                        try {
+                            if (row.date.includes('/')) {
+                                // Handle dd/mm/yyyy format
+                                const parts = row.date.split('/');
+                                if (parts.length === 3) {
+                                    rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                                }
+                            } else {
+                                // Handle yyyy-mm-dd format
+                                rowDate = new Date(row.date);
+                            }
+                        } catch (e) {
+                            console.warn('Invalid date format:', row.date);
+                            return false;
+                        }
+                        
+                        if (isNaN(rowDate.getTime())) return false;
+                        
+                        const startDate = filters.startDate ? new Date(filters.startDate) : null;
+                        const endDate = filters.endDate ? new Date(filters.endDate) : null;
+                        
+                        if (startDate && rowDate < startDate) return false;
+                        if (endDate && rowDate > endDate) return false;
+                        
+                        return true;
+                    });
+                }
+                
+                // Show no results message if no rows match filters
+                if (allRows.length === 0) {
+                    statementBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="px-6 py-8 text-center" style="color: var(--text-muted);">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <p class="text-lg font-medium">No results found</p>
+                                    <p class="text-sm">Try adjusting your filter criteria</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
                 statementBody.innerHTML = allRows.map(r => `
                     <tr>
                         <td class="px-6 py-3">${r.date}</td>
@@ -4640,6 +4914,9 @@
                 const challenge = JSON.parse(localStorage.getItem('activeChallenge') || 'null');
                 const activeContainer = document.getElementById('challenge-active-container');
                 const inactiveContainer = document.getElementById('challenge-inactive-container');
+                
+                // Get theme colors for chart rendering
+                const themeColors = getThemeColors();
                 
                 console.log('renderChallenge called - Challenge:', challenge, 'Trades count:', appState.trades?.length || 0);
                 
@@ -5269,11 +5546,37 @@
                     // Add trade dates - use all trades, not just closed ones
                     const allTrades = appState.trades || [];
                     allTrades.forEach(trade => {
-                        if (trade.entry_date) allDates.add(trade.entry_date);
-                        if (trade.exit_date) allDates.add(trade.exit_date);
+                        if (trade.entry_date) {
+                            // Normalize date to YYYY-MM-DD format for proper sorting
+                            try {
+                                const date = new Date(trade.entry_date);
+                                if (!isNaN(date.getTime())) {
+                                    const normalizedDate = date.toISOString().split('T')[0];
+                                    allDates.add(normalizedDate);
+                                } else {
+                                    console.warn('Invalid entry_date:', trade.entry_date);
+                                }
+                            } catch (e) {
+                                console.warn('Error parsing entry_date:', trade.entry_date, e);
+                            }
+                        }
+                        if (trade.exit_date) {
+                            // Normalize date to YYYY-MM-DD format for proper sorting
+                            try {
+                                const date = new Date(trade.exit_date);
+                                if (!isNaN(date.getTime())) {
+                                    const normalizedDate = date.toISOString().split('T')[0];
+                                    allDates.add(normalizedDate);
+                                } else {
+                                    console.warn('Invalid exit_date:', trade.exit_date);
+                                }
+                            } catch (e) {
+                                console.warn('Error parsing exit_date:', trade.exit_date, e);
+                            }
+                        }
                     });
                     
-                    // Sort dates
+                    // Sort dates (now they're in YYYY-MM-DD format so string sorting works)
                     const sortedDates = Array.from(allDates).sort();
                     
                     // If no trades, show empty chart
@@ -5375,76 +5678,77 @@
                         });
                     }
                     
+
                         const equityChart = new Chart(equityCtx, {
                             type: 'line',
                             data: {
-                            labels: chartLabels,
-                                datasets: [{
-                                label: 'Trading Equity',
-                                    data: equityData,
-                                borderColor: 'rgba(59, 130, 246, 1)', // Blue color
-                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                    borderWidth: 2,
-                                    fill: true,
-                                tension: 0.4,
-                                pointRadius: 4,
-                                pointHoverRadius: 6
-                                }]
+                                labels: chartLabels,
+                                datasets: [
+                                    {
+                                        label: 'Equity Curve',
+                                        data: equityData,
+                                        borderColor: 'rgba(20, 184, 166, 1)', // Teal color
+                                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                                        borderWidth: 2,
+                                        fill: true,
+                                        tension: 0.4,
+                                        pointRadius: 4,
+                                        pointHoverRadius: 6
+                                    }
+                                ]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
-                                aspectRatio: 1.5,
+                                aspectRatio: 2, // Wider aspect ratio like in the image
                                 layout: {
                                     padding: 0
                                 },
                             plugins: {
                                 legend: { display: false },
                                 tooltip: getContinuousTooltipConfig(themeColors, {
-                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                    borderColor: 'rgba(20, 184, 166, 1)',
                                     callbacks: {
                                         title: function(context) {
                                             return `Date: ${context[0].label}`;
                                         },
                                         label: function(context) {
-                                            return `Total Equity: ₹${context.parsed.y.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                                            return `Equity: ₹${context.parsed.y.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
                                         }
                                     }
-                                }),
+                                })
                             },
                                 scales: {
-                                y: {
-                                    beginAtZero: false,
-                                    grid: { 
-                                        color: 'rgba(128, 128, 128, 0.1)',
-                                        drawBorder: false
+                                    y: {
+                                        beginAtZero: false,
+                                        grid: { 
+                                            color: 'rgba(128, 128, 128, 0.1)',
+                                            drawBorder: false
+                                        },
+                                        ticks: {
+                                            callback: function(value) {
+                                                return '₹' + value.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                            },
+                                            color: themeColors.chartText || themeColors.textColor,
+                                            font: {
+                                                size: 11
+                                            }
+                                        }
                                     },
-                                    ticks: {
-                                        callback: function(value) {
-                                            return '₹' + value.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                                    x: {
+                                        grid: { 
+                                            color: 'rgba(128, 128, 128, 0.1)',
+                                            drawBorder: false
                                         },
-                                        color: (themeColors || getThemeColors()).chartText || (themeColors || getThemeColors()).textColor,
-                                        font: {
-                                            size: 11
-                                        },
-                                        maxTicksLimit: 6
+                                        ticks: {
+                                            color: (themeColors || getThemeColors()).chartText || (themeColors || getThemeColors()).textColor,
+                                            font: {
+                                                size: 11
+                                            },
+                                            maxRotation: 45,
+                                            minRotation: 0
+                                        }
                                     }
-                                },
-                                x: {
-                                    grid: { 
-                                        color: 'rgba(128, 128, 128, 0.1)',
-                                        drawBorder: false
-                                    },
-                                    ticks: {
-                                        color: (themeColors || getThemeColors()).chartText || (themeColors || getThemeColors()).textColor,
-                                        font: {
-                                            size: 11
-                                        },
-                                        maxRotation: 45,
-                                        minRotation: 0,
-                                        maxTicksLimit: 8
-                                    }
-                                }
                                 }
                             }
                         });
@@ -5471,17 +5775,64 @@
                     // Add trade dates - use all trades, not just closed ones
                     const allTrades = appState.trades || [];
                     allTrades.forEach(trade => {
-                        if (trade.entry_date) allDates.add(trade.entry_date);
-                        if (trade.exit_date) allDates.add(trade.exit_date);
+                        if (trade.entry_date) {
+                            try {
+                                // Normalize date to YYYY-MM-DD format (strip time component)
+                                const date = new Date(trade.entry_date);
+                                if (!isNaN(date.getTime())) {
+                                    const normalizedDate = date.toISOString().split('T')[0];
+                                    allDates.add(normalizedDate);
+                                } else {
+                                    console.warn('Invalid entry_date:', trade.entry_date);
+                                }
+                            } catch (e) {
+                                console.warn('Error parsing entry_date:', trade.entry_date, e);
+                            }
+                        }
+                        if (trade.exit_date) {
+                            try {
+                                // Normalize date to YYYY-MM-DD format (strip time component)
+                                const date = new Date(trade.exit_date);
+                                if (!isNaN(date.getTime())) {
+                                    const normalizedDate = date.toISOString().split('T')[0];
+                                    allDates.add(normalizedDate);
+                                } else {
+                                    console.warn('Invalid exit_date:', trade.exit_date);
+                                }
+                            } catch (e) {
+                                console.warn('Error parsing exit_date:', trade.exit_date, e);
+                            }
+                        }
                     });
                     
                     // Add ledger dates
                     ledger.forEach(entry => {
-                        if (entry.date) allDates.add(entry.date);
+                        if (entry.date) {
+                            try {
+                                // Normalize date to YYYY-MM-DD format (strip time component)
+                                const date = new Date(entry.date);
+                                if (!isNaN(date.getTime())) {
+                                    const normalizedDate = date.toISOString().split('T')[0];
+                                    allDates.add(normalizedDate);
+                                } else {
+                                    console.warn('Invalid ledger date:', entry.date);
+                                }
+                            } catch (e) {
+                                console.warn('Error parsing ledger date:', entry.date, e);
+                            }
+                        }
                     });
                     
+                    // Deduplicate entries so each date appears once - keep the last balance of the day (highest timestamp)
+                    // This prevents duplicate x-axis dates when multiple entries exist for the same day
+                    const deduplicatedDates = Array.from(allDates);
+                    
                     // Sort dates
-                    const sortedDates = Array.from(allDates).sort();
+                    const sortedDates = deduplicatedDates.sort();
+                    
+                    console.log('Account Balance Chart - sortedDates:', sortedDates);
+                    console.log('Account Balance Chart - ledger length:', ledger.length);
+                    console.log('Account Balance Chart - trades length:', allTrades.length);
                     
                     // If no dates, create sample data
                     let chartLabels, accountValueData, cumulativeDeposits, cumulativeWithdrawals, cumulativePnl;
@@ -5503,17 +5854,46 @@
                         
                         sortedDates.forEach(date => {
                             // Calculate deposits and withdrawals up to this date
+                            // Normalize ledger dates for comparison
                             const depositsToDate = ledger
-                                .filter(l => l.type === 'Deposit' && l.date <= date)
+                                .filter(l => {
+                                    if (l.type !== 'Deposit' || !l.date) return false;
+                                    try {
+                                        const ledgerDate = new Date(l.date).toISOString().split('T')[0];
+                                        return ledgerDate <= date;
+                                    } catch (e) {
+                                        console.warn('Error comparing deposit date:', l.date, e);
+                                        return false;
+                                    }
+                                })
                                 .reduce((sum, l) => sum + (l.amount || 0), 0);
                             
                             const withdrawalsToDate = ledger
-                                .filter(l => l.type === 'Withdrawal' && l.date <= date)
+                                .filter(l => {
+                                    if (l.type !== 'Withdrawal' || !l.date) return false;
+                                    try {
+                                        const ledgerDate = new Date(l.date).toISOString().split('T')[0];
+                                        return ledgerDate <= date;
+                                    } catch (e) {
+                                        console.warn('Error comparing withdrawal date:', l.date, e);
+                                        return false;
+                                    }
+                                })
                                 .reduce((sum, l) => sum + (l.amount || 0), 0);
                             
                             // Calculate P&L up to this date
+                            // Normalize trade exit dates for comparison
                             const pnlToDate = closedTrades
-                                .filter(trade => trade.exit_date && trade.exit_date <= date)
+                                .filter(trade => {
+                                    if (!trade.exit_date) return false;
+                                    try {
+                                        const tradeDate = new Date(trade.exit_date).toISOString().split('T')[0];
+                                        return tradeDate <= date;
+                                    } catch (e) {
+                                        console.warn('Error comparing trade exit date:', trade.exit_date, e);
+                                        return false;
+                                    }
+                                })
                                 .reduce((sum, trade) => {
                                     const pnl = calculateNetPnl(trade);
                                     return sum + (isNaN(pnl) ? 0 : pnl);
@@ -5530,6 +5910,14 @@
                             cumulativePnl.push(isNaN(pnlToDate) ? 0 : pnlToDate);
                         });
                     }
+                    
+                    console.log('Account Balance Chart - Final data:', {
+                        chartLabels: chartLabels,
+                        accountValueData: accountValueData,
+                        chartLabelsLength: chartLabels.length,
+                        accountValueDataLength: accountValueData.length
+                    });
+                    
                     
                     const balanceChart = new Chart(balanceCtx, {
                         type: 'line',
@@ -6455,7 +6843,7 @@
                     const sortedDates = Array.from(allDates).sort();
                     
                     // If no trades, create comprehensive demo data
-                    let chartLabels, dailyWinRateData, tooltipData;
+                    let chartLabels, dailyWinRateData, avgWinRateData, tooltipData;
                     
                     if (sortedDates.length === 0) {
                         console.log('No trades found, using comprehensive demo data for Daily Win Rate Chart');
@@ -6500,6 +6888,17 @@
                         
                         chartLabels = demoDates.map(date => formatDateDDMMYYYY(date));
                         dailyWinRateData = demoStats.map(stat => stat.rate);
+                        
+                        // Calculate cumulative average win rate for demo data
+                        avgWinRateData = [];
+                        let cumulativeWins = 0;
+                        let cumulativeTrades = 0;
+                        demoStats.forEach((stat, index) => {
+                            cumulativeWins += stat.wins;
+                            cumulativeTrades += stat.total;
+                            avgWinRateData.push(cumulativeTrades > 0 ? (cumulativeWins / cumulativeTrades) * 100 : 0);
+                        });
+                        
                         tooltipData = demoStats.map((stat, index) => ({
                             date: chartLabels[index],
                             dailyWins: stat.wins,
@@ -6517,11 +6916,22 @@
                         // Process actual trade data
                         chartLabels = sortedDates.map(date => formatDateDDMMYYYY(date));
                         dailyWinRateData = [];
+                        avgWinRateData = [];
                         tooltipData = [];
+                        
+                        let cumulativeWins = 0;
+                        let cumulativeTrades = 0;
                         
                         sortedDates.forEach(date => {
                             const stats = calculateDailyWinRateStats(closedTrades, date);
                             dailyWinRateData.push(stats.dailyRatePct);
+                            
+                            // Calculate cumulative average win rate
+                            cumulativeWins += stats.dailyWins;
+                            cumulativeTrades += stats.totalTrades;
+                            const avgWinRate = cumulativeTrades > 0 ? (cumulativeWins / cumulativeTrades) * 100 : 0;
+                            avgWinRateData.push(avgWinRate);
+                            
                             tooltipData.push(stats);
                         });
                     }
@@ -6588,6 +6998,18 @@
                                     tension: 0.4,
                                     pointRadius: 4,
                                     pointHoverRadius: 6
+                                },
+                                {
+                                    label: 'Average Win Rate',
+                                    data: avgWinRateData,
+                                    borderColor: 'rgba(239, 68, 68, 1)',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    borderWidth: 2,
+                                    fill: false,
+                                    tension: 0.4,
+                                    pointRadius: 3,
+                                    pointHoverRadius: 5,
+                                    borderDash: [5, 5]
                                 }
                             ]
                         },
@@ -6608,7 +7030,17 @@
                                         }
                                     }
                                 },
-                                tooltip: getContinuousTooltipConfig(themeColors, {
+                                tooltip: {
+                                    enabled: true,
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#ffffff',
+                                    bodyColor: '#ffffff',
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    borderWidth: 1,
+                                    cornerRadius: 6,
+                                    displayColors: true,
                                     callbacks: {
                                         title: function(context) {
                                             const index = context[0].dataIndex;
@@ -6616,26 +7048,23 @@
                                             return `Date: ${data.date}`;
                                         },
                                         label: function(context) {
-                                            const index = context.dataIndex;
-                                            const data = tooltipData[index];
-                                            const lines = [
-                                                `Win Rate: ${data.dailyRatePct.toFixed(2)}%`,
-                                                `Wins/Losses: ${data.dailyWins}/${data.dailyLosses}`,
-                                                `Breakeven: ${data.dailyBreakeven}`,
-                                                `Total Trades: ${data.totalTrades}`,
-                                                `Avg Win: ₹${data.avgWinSize.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`,
-                                                `Avg Loss: ₹${data.avgLossSize.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`,
-                                                `Net P&L: ₹${data.netPnl.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`
-                                            ];
-                                            return lines;
+                                            const datasetLabel = context.dataset.label;
+                                            const value = context.parsed.y;
+                                            
+                                            if (datasetLabel === 'Daily Win Rate') {
+                                                return `Daily Win Rate: ${value.toFixed(1)}%`;
+                                            } else if (datasetLabel === 'Average Win Rate') {
+                                                return `Average Win Rate: ${value.toFixed(1)}%`;
+                                            }
+                                            return `${datasetLabel}: ${value.toFixed(1)}%`;
                                         }
                                     }
-                                }),
+                                },
                             },
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    max: 100,
+                                    max: 110,
                                     ticks: {
                                         callback: function(value) {
                                             return value + '%';
@@ -7705,6 +8134,10 @@
         feather.replace();
         // Ensure export buttons are wired on initial load as well
         wireCsvButtons();
+        // Setup global event listeners
+        setupGlobalEventListeners();
+        // Setup trade table event listeners
+        setupTradeTableEventListeners();
         
 
         // Wait for Chart.js to load, then render charts
@@ -7856,6 +8289,42 @@
                 showToast('All data cleared.', 'success');
             } catch (e) { console.error('clear failed', e); }
         });
+        
+        // Trade Statement Filter Event Listeners
+        document.getElementById('apply-filter-btn')?.addEventListener('click', () => {
+            // Get filter values from form elements
+            const transactionType = document.getElementById('filter-type')?.value || 'All Types';
+            const strategy = document.getElementById('filter-strategy')?.value || 'All Strategies';
+            const startDate = document.getElementById('filter-start-date')?.value || '';
+            const endDate = document.getElementById('filter-end-date')?.value || '';
+            
+            // Apply filters to statement
+            const filters = {
+                transactionType: transactionType !== 'All Types' ? transactionType : null,
+                strategy: strategy !== 'All Strategies' ? strategy : null,
+                startDate: startDate || null,
+                endDate: endDate || null
+            };
+            
+            renderStatement(filters);
+        });
+        
+        document.getElementById('reset-filter-btn')?.addEventListener('click', () => {
+            // Reset all filter form elements to default values
+            const filterType = document.getElementById('filter-type');
+            const filterStrategy = document.getElementById('filter-strategy');
+            const filterStartDate = document.getElementById('filter-start-date');
+            const filterEndDate = document.getElementById('filter-end-date');
+            
+            if (filterType) filterType.value = 'All Types';
+            if (filterStrategy) filterStrategy.value = 'All Strategies';
+            if (filterStartDate) filterStartDate.value = '';
+            if (filterEndDate) filterEndDate.value = '';
+            
+            // Render statement without filters (show all data)
+            renderStatement();
+        });
+        
         setKeysBtn?.addEventListener('click', async () => {
             const url = prompt('Enter SUPABASE_URL');
             if (!url) return;
@@ -9108,3 +9577,5 @@
 </html>
 
 </html>
+
+
